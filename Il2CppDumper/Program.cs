@@ -23,6 +23,7 @@ namespace Il2CppDumper
             config = File.Exists("config.json") ? new JavaScriptSerializer().Deserialize<Config>(File.ReadAllText("config.json")) : new Config();
             var ofd = new OpenFileDialog();
             ofd.Filter = "Il2Cpp binary file|*.*";
+            ulong NsoLoadBase = 0;
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 var il2cppfile = File.ReadAllBytes(ofd.FileName);
@@ -39,10 +40,16 @@ namespace Il2CppDumper
                         var isElf = false;
                         var isPE = false;
                         var is64bit = false;
+                        var isNSO = false;
                         switch (il2cppMagic)
                         {
                             default:
                                 throw new Exception("ERROR: il2cpp file not supported.");
+                            case 0x304F534E:
+                                isNSO = true;
+                                is64bit = true;
+                                NsoLoadBase = 0x7100000000;
+                                break;
                             case 0x905A4D: //PE
                                 isPE = true;
                                 break;
@@ -85,6 +92,10 @@ namespace Il2CppDumper
                         if (isPE)
                         {
                             il2cpp = new PE(new MemoryStream(il2cppfile), version, metadata.maxMetadataUsages);
+                        }
+                        else if (isNSO)
+                        {
+                            il2cpp = new NSO64(new MemoryStream(il2cppfile), version, metadata.maxMetadataUsages);
                         }
                         else if (isElf)
                         {
@@ -412,10 +423,10 @@ namespace Il2CppDumper
                                             }
                                             if (methodPointer > 0)
                                             {
-                                                writer.Write("); // 0x{0:X}\n", methodPointer);
+                                                writer.Write("); // 0x{0:X}\n", (methodPointer + NsoLoadBase));
                                                 //Script - method
                                                 var name = ToEscapedString(HandleSpecialCharacters(typeName + "$$" + methodName));
-                                                scriptwriter.WriteLine($"SetMethod(0x{methodPointer:X}, '{name}')");
+                                                scriptwriter.WriteLine($"SetMethod(0x{(methodPointer+ NsoLoadBase):X}, '{name}')");
                                             }
                                             else
                                             {
@@ -445,7 +456,7 @@ namespace Il2CppDumper
                         {
                             foreach (var i in metadata.stringLiteralsdic)
                             {
-                                scriptwriter.WriteLine($"SetString(0x{il2cpp.metadataUsages[i.Key]:X}, r'{ToEscapedString(i.Value)}')");
+                                scriptwriter.WriteLine($"SetString(0x{NsoLoadBase+il2cpp.metadataUsages[i.Key]:X}, r'{ToEscapedString(i.Value)}')");
                             }
                         }
                         scriptwriter.WriteLine("print('Set string done')");

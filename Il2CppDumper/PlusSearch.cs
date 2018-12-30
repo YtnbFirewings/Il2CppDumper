@@ -30,6 +30,22 @@ namespace Il2CppDumper
             this.maxMetadataUsages = maxMetadataUsages;
         }
 
+        public void SetSearch(params NSO_SegmentHeader[] sections)
+        {
+            foreach (var section in sections)
+            {
+                if (section != null)
+                {
+                    search.Add(new Section
+                    {
+                        start = (ulong)section.FileOffset,
+                        end = (ulong)(section.FileOffset + section.DecompressedSize),
+                        address = (ulong)section.MemoryOffset
+                    });
+                }
+            }
+        }
+
         public void SetSearch(params MachoSection64Bit[] sections)
         {
             foreach (var section in sections)
@@ -142,6 +158,23 @@ namespace Il2CppDumper
             }
         }
 
+        public void SetPointerRangeFirst(params NSO_SegmentHeader[] sections)
+        {
+            foreach (var section in sections)
+            {
+                if (section != null)
+                {
+                    pointerRange1.Add(new Section
+                    {
+                        start = (ulong)section.FileOffset,
+                        end = (ulong)(section.FileOffset + section.DecompressedSize),
+                        address = (ulong)section.MemoryOffset
+                    });
+                }
+            }
+        }
+
+
         public void SetPointerRangeFirst(params MachoSection64Bit[] sections)
         {
             foreach (var section in sections)
@@ -249,6 +282,22 @@ namespace Il2CppDumper
                         start = section.PointerToRawData,
                         end = section.PointerToRawData + section.SizeOfRawData,
                         address = section.VirtualAddress + imageBase
+                    });
+                }
+            }
+        }
+        public void SetPointerRangeSecond(params NSO_SegmentHeader[] sections)
+        {
+            pointerRange2.Clear();
+            foreach (var section in sections)
+            {
+                if (section != null)
+                {
+                    pointerRange2.Add(new Section
+                    {
+                        start = (ulong)section.FileOffset,
+                        end = (ulong)(section.FileOffset + section.DecompressedSize),
+                        address = (ulong)section.MemoryOffset
                     });
                 }
             }
