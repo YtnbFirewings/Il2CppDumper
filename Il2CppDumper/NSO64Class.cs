@@ -25,12 +25,7 @@ namespace Il2CppDumper
 
     public class NSO_HEADER
     {
-        public const int SIZE = 0x100;
-        public const uint ExpectedMagic = 0x304F534E; // NSO0
-        public bool Valid => Magic == ExpectedMagic;
-
         // Structure below
-
         public uint Magic;
         public uint Version;
         public uint Reserved;
@@ -43,27 +38,22 @@ namespace Il2CppDumper
         public NSO_SegmentHeader HeaderData;
         public int BssSize;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x20)]
         public byte[] DigestBuildID;
 
         public int SizeCompressedText;
         public int SizeCompressedRO;
         public int SizeCompressedData;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x1C)]
         public byte[] Padding;
 
         public NSO_RelativeExtent APIInfo;
         public NSO_RelativeExtent DynStr;
         public NSO_RelativeExtent DynSym;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x20)]
         public byte[] HashText;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x20)]
         public byte[] HashRO;
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x20)]
         public byte[] HashData;
     }
 

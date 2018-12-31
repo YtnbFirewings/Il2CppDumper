@@ -22,11 +22,13 @@ namespace Il2CppDumper
         {
             config = File.Exists("config.json") ? new JavaScriptSerializer().Deserialize<Config>(File.ReadAllText("config.json")) : new Config();
             var ofd = new OpenFileDialog();
+            
             ofd.Filter = "Il2Cpp binary file|*.*";
             ulong NsoLoadBase = 0;
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 var il2cppfile = File.ReadAllBytes(ofd.FileName);
+                var ExecuteFileName = ofd.FileName;
                 ofd.Filter = "global-metadata|global-metadata.dat";
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
@@ -95,7 +97,24 @@ namespace Il2CppDumper
                         }
                         else if (isNSO)
                         {
-                            il2cpp = new NSO64(new MemoryStream(il2cppfile), version, metadata.maxMetadataUsages);
+                            if (NSO64.IsCompressedNso(ExecuteFileName))
+                            {
+                                var newFileName = ExecuteFileName + ".uncompress";
+                                if (NSO64.UncompressNso(ExecuteFileName, newFileName))
+                                {
+
+                                    il2cppfile = File.ReadAllBytes(newFileName);
+                                    il2cpp = new NSO64(new MemoryStream(il2cppfile), version, metadata.maxMetadataUsages);
+                                }
+                                else
+                                {
+                                    throw new Exception();
+                                }
+                            }
+                            else
+                            {
+                                il2cpp = new NSO64(new MemoryStream(il2cppfile), version, metadata.maxMetadataUsages);
+                            }
                         }
                         else if (isElf)
                         {
